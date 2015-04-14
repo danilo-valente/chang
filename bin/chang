@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+'use strict';
+
+process.bin = process.title = 'chang';
+
+var path = require('path');
+var cli = require('cli');
+var yargs = require('yargs');
+var shjs = require('shelljs');
+var prettyJson = require('prettyjson');
+var _ = require('lodash');
+var chang = require('../lib/chang.js');
+
+var rc = loadConfig(findFile('.changrc'));
+var config = _.extend({}, rc, args());
+cli.ok('Using configuration:\n' + prettyJson.render(config) + '\n');
+
+chang(config).catch(function (err) {
+    cli.error(err instanceof Error ? err.stack : err);
+    process.exit(1);
+});
+
+function args() {
+    var argv = yargs
+        .help('h')
+        .alias('h', 'help')
+        .options('r', { alias: 'release', describe: 'Changelog release version' })
+        .options('o', { alias: 'output', describe: 'Output file' })
+        .options('g', { alias: 'github-repo', describe: 'Github repository (owner/name)' })
+        .options('l', { alias: 'language', describe: 'Changelog language' })
+        .options('t', { alias: 'tag', describe: 'Starting Git tag' })
+        .version('Chang ' + require('../package.json').version)
+        .strict()
+        .argv;
+
+    var obj = {};
+    if (argv.r) obj.release = argv.r;
+    if (argv.o) obj.output = argv.o;
+    if (argv.g) obj.github_repo = argv.g;
+    if (argv.l) obj.language = argv.l;
+    if (argv.t) obj.tag = argv.t;
+
+    return obj;
+}
+
+function loadConfig(fp) {
+    if (!fp) {
+        return {};
+    }
+
+    if (!shjs.test('-e', fp)) {
+        cli.info('Can\'t find config file: ' + fp);
+        return null;
+    }
+
+    try {
+        return JSON.parse(shjs.cat(fp));
+    } catch (err) {
+        cli.info('Can\'t parse config file: ' + fp + '\nError:' + err);
+        return null;
+    }
+}
+
+function findFile(name, cwd) {
+    cwd = cwd || process.cwd();
+
+    var filename = path.normalize(path.join(cwd, name));
+    if (shjs.test('-e', filename)) {
+        return filename;
+    }
+
+    var parent = path.resolve(cwd, '../');
+    if (cwd === parent) {
+        return null;
+    }
+
+    return findFile(name, parent);
+}
