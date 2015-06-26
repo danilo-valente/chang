@@ -2,7 +2,7 @@
   "name": "chang",
   "version": "0.1.0",
   "description": "Git Changelog generator, based on Angular's commit message notation",
-  "main": "lib/change.js",
+  "main": "lib/chang.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
