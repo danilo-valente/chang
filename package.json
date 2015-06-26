@@ -1,6 +1,6 @@
 {
   "name": "chang",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Git Changelog generator, based on Angular's commit message notation",
   "main": "lib/chang.js",
   "scripts": {
